@@ -1,0 +1,126 @@
+[
+    {
+        "title": "The Shawshank Redemption",
+        "director": {
+            "name": "Frank Darabont",
+            "birth_year": 1959
+        },
+        "release_year": 1994,
+        "length": "02.22",
+        "actors": [
+            {
+                "name": "Tim Robbins",
+                "birth_year": 1958
+            },
+            {
+                "name": "Morgan Freeman",
+                "birth_year": 1937
+            },
+            {
+                "name": "Bob Gunton",
+                "birth_year": 1945
+            },
+            {
+                "name": "William Sadler",
+                "birth_year": 1950
+            },
+            {
+                "name": "Clancy Brown",
+                "birth_year": 1959
+            }
+        ]
+    },
+    {
+        "title": "The Godfather",
+        "director": {
+            "name": "Francis Ford Coppola",
+            "birth_year": 1939
+        },
+        "release_year": 1972,
+        "length": "02.55",
+        "actors": [
+            {
+                "name": "Marlon Brando",
+                "birth_year": 1924
+            },
+            {
+                "name": "Al Pacino",
+                "birth_year": 1940
+            },
+            {
+                "name": "James Caan",
+                "birth_year": 1940
+            },
+            {
+                "name": "Richard S. Castellano",
+                "birth_year": 1933
+            },
+            {
+                "name": "Robert Duvall",
+                "birth_year": 1931
+            }
+        ]
+    },
+    {
+        "title": "The Dark Knight",
+        "director": {
+            "name": "Christopher Nolan",
+            "birth_year": 1970
+        },
+        "release_year": 2008,
+        "length": "02.32",
+        "actors": [
+            {
+                "name": "Christian Bale",
+                "birth_year": 1974
+            },
+            {
+                "name": "Heath Ledger",
+                "birth_year": 1979
+            },
+            {
+                "name": "Aaron Eckhart",
+                "birth_year": 1968
+            },
+            {
+                "name": "Michael Caine",
+                "birth_year": 1933
+            },
+            {
+                "name": "Maggie Gyllenhaal",
+                "birth_year": 1977
+            }
+        ]
+    },
+    {
+        "title": "Pulp Fiction",
+        "director": {
+            "name": "Quentin Tarantino",
+            "birth_year": 1963
+        },
+        "release_year": 1994,
+        "length": "02.34",
+        "actors": [
+            {
+                "name": "John Travolta",
+                "birth_year": 1954
+            },
+            {
+                "name": "Uma Thurman",
+                "birth_year": 1970
+            },
+            {
+                "name": "Samuel L. Jackson",
+                "birth_year": 1948
+            },
+            {
+                "name": "Bruce Willis",
+                "birth_year": 1955
+            },
+            {
+                "name": "Ving Rhames",
+                "birth_year": 1959
+            }
+        ]
+    }
+]
