@@ -6,7 +6,7 @@
             "birth_year": 1959
         },
         "release_year": 1994,
-        "length": "02.22",
+        "length": 144,
         "actors": [
             {
                 "name": "Tim Robbins",
@@ -37,7 +37,7 @@
             "birth_year": 1939
         },
         "release_year": 1972,
-        "length": "02.55",
+        "length": 175,
         "actors": [
             {
                 "name": "Marlon Brando",
@@ -68,7 +68,7 @@
             "birth_year": 1970
         },
         "release_year": 2008,
-        "length": "02.32",
+        "length": 152,
         "actors": [
             {
                 "name": "Christian Bale",
@@ -99,7 +99,7 @@
             "birth_year": 1963
         },
         "release_year": 1994,
-        "length": "02.34",
+        "length": 154,
         "actors": [
             {
                 "name": "John Travolta",
