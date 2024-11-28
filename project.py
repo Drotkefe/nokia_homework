@@ -8,21 +8,13 @@ class Actor:
     def __init__(self, name: str, birth_year: int):
         self.name = name
         self.birth_year = birth_year
-        self.age = None
 
-    def set_age(self, movie_year: int):
-        self.age = movie_year - self.birth_year
+    @staticmethod
+    def calculate_age(movie_year: int, birth_year: int):
+        return movie_year - birth_year
 
     def __str__(self):
         return f"{self.name}"
-
-    @staticmethod
-    def print_actor_list(actor_list: list):
-        for actor in actor_list:
-            print(repr(actor))
-
-    def __repr__(self):
-        return f"\t\t - {self.name} at age {self.age}"
 
     def __eq__(self, other):
         return isinstance(other, Actor) and other.name == self.name
@@ -50,6 +42,10 @@ class Movie:
         hours = self.length // 60
         mins = self.length % 60
         return f"{hours:02}:{mins:02}"
+
+    def convert_hhmm_to_minutes(self):
+        hours, minutes = map(int, self.length.split(":"))
+        return hours * 60 + minutes
 
     def __str__(self):
         return f"{self.title} by {str(self.director)} in {self.release_year}, {self.__convert_minutes_to_hhmm()}"
@@ -81,7 +77,6 @@ class Database_Handler:
             starring = []
             for actor in movie["actors"]:
                 new_actor = Actor(actor["name"], actor["birth_year"])
-                new_actor.set_age(movie["release_year"])
                 starring.append(new_actor)
                 self.actors.add(new_actor)
             self.movies.add(
@@ -117,6 +112,12 @@ class Database_Handler:
             return False
 
     def __save_to_database(self, new_movie):
+        new_movie = {
+            "title": new_movie.title,
+            "director": new_movie.director.__dict__,
+            "length": new_movie.convert_hhmm_to_minutes(),
+            "actors": [actor.__dict__ for actor in new_movie.actors],
+        }
         with open(self.db_path, "r+") as file:
             data = json.load(file)
             data.append(new_movie)
@@ -203,7 +204,10 @@ class Database_Handler:
             for movie in self.filtered_movies:
                 print(movie)
                 print("\t Starring:")
-                Actor.print_actor_list(movie.actors)
+                for actor in movie.actors:
+                    print(
+                        f"\t\t - {actor.name} at age {Actor.calculate_age(movie.release_year,actor.birth_year)}"
+                    )
         else:
             for movie in self.filtered_movies:
                 print(movie)
@@ -241,7 +245,6 @@ if __name__ == "__main__":
     # elif args.command == 'a':
     #     if args.p:
     #         pass
-    database.list_movies(verbose=True)
     new_movie = Movie(
         "Nagy vadászat",
         "Kis Cica",
@@ -249,8 +252,6 @@ if __name__ == "__main__":
         135,
         [Actor("kis Lajos", 1955), Actor("Nagy Laj", 1988), Actor("Nagy cica", 2005)],
     )
-    a = dict(new_movie)
-    print(a)
 
     database.add_movie()
     database.list_movies(verbose=True)
