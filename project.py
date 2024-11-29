@@ -2,6 +2,7 @@ import json
 from datetime import datetime
 import argparse
 import re
+import os
 
 
 class Actor:
@@ -71,9 +72,10 @@ class Database_Handler:
 
     def __init__(self, file_path):
         self.db_path = file_path
+        self.actors_json_path = "actors.json"
 
-    def __decoder(self, data):
-        for movie in data:
+    def __decoder(self, movie_data, actor_data):
+        for movie in movie_data:
             starring = []
             for actor in movie["actors"]:
                 new_actor = Actor(actor["name"], actor["birth_year"])
@@ -88,15 +90,23 @@ class Database_Handler:
                     starring,
                 )
             )
+        for actor in actor_data:
+            self.actors.add(Actor(actor["name"], actor["birth_year"]))
 
     def load_database(self):
         try:
             with open(self.db_path, "r") as file:
                 data = json.load(file, parse_int=int)
         except:
-            print("Failed to load the database")
+            print("Failed to load the movie database")
             exit()
-        self.__decoder(data)
+
+        try:
+            with open("actors.json", "r") as file:
+                actor_data = json.load(file, parse_int=int)
+        except:
+            actor_data = []
+        self.__decoder(data, actor_data)
 
     def __search_actor(self, name: str) -> Actor:
         for a in self.actors:
@@ -115,15 +125,18 @@ class Database_Handler:
         new_movie = {
             "title": new_movie.title,
             "director": new_movie.director.__dict__,
-            "length": new_movie.convert_hhmm_to_minutes(),
+            "release_year": new_movie.release_year,
+            "length": new_movie.length,
             "actors": [actor.__dict__ for actor in new_movie.actors],
         }
-        with open(self.db_path, "r+") as file:
-            data = json.load(file)
-            data.append(new_movie)
-            file.seek(0)
-            json.dump(data, file, indent=4)
-            print("Failed to load the database")
+        try:
+            with open(self.db_path, "r+") as file:
+                data = json.load(file)
+                data.append(new_movie)
+                file.seek(0)
+                json.dump(data, file, indent=4)
+        except:
+            print("Failed to save the new movie into the database")
 
     def add_movie(self):
         title = input("Title: ")
@@ -150,9 +163,26 @@ class Database_Handler:
             else:
                 print("This actor is not in the database, try again!")
             starring = input("")
-        new_movie = Movie(title, director, release_year, length, starring_list)
+        new_movie = Movie(title, director, int(release_year), length, starring_list)
+        new_movie.length = new_movie.convert_hhmm_to_minutes()
         self.movies.add(new_movie)
         self.__save_to_database(new_movie)
+
+    def __save_actor(self, new_actor: Actor):
+        new_actor = new_actor.__dict__
+        try:
+            if os.path.exists(self.actors_json_path):
+                with open(self.actors_json_path, "r+") as file:
+                    data = json.load(file)
+                    data.append(new_actor)
+                    file.seek(0)
+                    json.dump(data, file, indent=4)
+            else:
+                new_actor = [new_actor]
+                with open(self.actors_json_path, "w") as file:
+                    json.dump(new_actor, file, indent=4)
+        except:
+            print("Failed to save the new Actor into the database")
 
     def add_actor(self):
         name = input("Name: ")
@@ -160,7 +190,7 @@ class Database_Handler:
         while not birth_year.isdigit():
             print("Bad input format (only numbers), try again!")
             birth_year = input("Birth year: ")
-        self.actors.add(Actor(name, birth_year))
+        self.__save_actor(Actor(name, int(birth_year)))
 
     def list_movies(
         self,
@@ -212,46 +242,93 @@ class Database_Handler:
             for movie in self.filtered_movies:
                 print(movie)
 
+    def __check_actor_is_director(self, actor):
+        for movie in self.movies:
+            if movie.director == actor:
+                return True
+        return False
+
+    def __delete_actor_from_movies(self, actor) -> bool:
+        if self.__check_actor_is_director(actor):
+            print("This person cannot be deleted, because he/she is a Director")
+            return False
+        for movie in self.movies:
+            try:
+                movie.actors.remove(actor)
+            except ValueError:
+                continue
+        return True
+
+    def __delete_person_by_name_from_database(self, name):
+        try:
+            with open(self.actors_json_path, "r") as file:
+                data = json.load(file)
+                data = [person for person in data if person["name"] != name]
+            with open(self.actors_json_path, "w") as file:
+                json.dump(data, file, indent=4)
+
+        except FileNotFoundError:
+            print(f"The file {self.actors_json_path} does not exist.")
+        except json.JSONDecodeError:
+            print(f"Error decoding JSON from the file {self.actors_json_path}.")
+
+    def delete_actor(self, name):
+        actor = self.__search_actor(name)
+        if actor == None:
+            print(f"We could not find '{name}', try again!")
+            return
+        if self.__delete_actor_from_movies(actor):
+            self.actors.remove(actor)
+            self.__delete_person_by_name_from_database(actor.name)
+
 
 if __name__ == "__main__":
-
     database = Database_Handler("movies.json")
     database.load_database()
-
     parser = argparse.ArgumentParser(description="Movie Database Program")
-    parser.add_argument("command", choices=["l", "a"], help="Command to execute")
-    parser.add_argument("-v", action="store_true", help="Verbose output")
-    parser.add_argument("-t", help="Filter by title regex")
-    parser.add_argument("-d", help="Filter by director regex")
-    parser.add_argument("-a", help="Filter by actor regex")
-    parser.add_argument("-la", action="store_true", help="Sort by length ascending")
-    parser.add_argument("-ld", action="store_true", help="Sort by length descending")
+    subparsers = parser.add_subparsers(dest="command", help="Sub-command help")
 
-    parser.add_argument("-p", action="store_true", help="Add new person")
-    parser.add_argument("-m", action="store_true", help="Add new movie")
+    # Create parser for 'l'
+    parser_l = subparsers.add_parser("l", help="List database")
+    parser_l.add_argument("-v", action="store_true", help="Verbose output")
+    parser_l.add_argument("-t", help="Filter by title regex")
+    parser_l.add_argument("-d", help="Filter by director regex")
+    parser_l.add_argument("-a", help="Filter by actor regex")
+    parser_l.add_argument("-la", action="store_true", help="Sort by length ascending")
+    parser_l.add_argument("-ld", action="store_true", help="Sort by length descending")
 
-    # args = parser.parse_args()
+    # Create parser for 'a'
+    parser_a = subparsers.add_parser("a", help="Add a person")
+    parser_a.add_argument("-p", action="store_true", help="Add new person")
+    parser_a.add_argument("-m", action="store_true", help="Add new movie")
 
-    # if args.command == "l":
-    #     if args.la and args.ld:
-    #         print(
-    #             "Error: Cannot use both -la and -ld switches together. Default order will be used"
-    #         )
-    #         database.list_movies(args.v, args.t, args.d, args.a)
-    #     else:
-    #         order = "asc" if args.la else "desc" if args.ld else None
-    #         database.list_movies(args.v, args.t, args.d, args.a, order)
-
-    # elif args.command == 'a':
-    #     if args.p:
-    #         pass
-    new_movie = Movie(
-        "Nagy vadászat",
-        "Kis Cica",
-        2024,
-        135,
-        [Actor("kis Lajos", 1955), Actor("Nagy Laj", 1988), Actor("Nagy cica", 2005)],
+    # Create parser for 'd'
+    parser_d = subparsers.add_parser("d", help="Delete a person")
+    parser_d.add_argument(
+        "-p", "--person", type=str, help="Name of the person to delete", required=True
     )
 
-    database.add_movie()
-    database.list_movies(verbose=True)
+    args = parser.parse_args()
+
+    if args.command == "l":
+        if args.la and args.ld:
+            print(
+                "Error: Cannot use both -la and -ld switches together. Default order will be used"
+            )
+            database.list_movies(args.v, args.t, args.d, args.a)
+        else:
+            order = "asc" if args.la else "desc" if args.ld else None
+            database.list_movies(args.v, args.t, args.d, args.a, order)
+
+    elif args.command == "a":
+        if args.p:
+            database.add_actor()
+        if args.m:
+            database.add_movie()
+
+    elif args.command == "d":
+        if args.person:
+            database.delete_actor(args.person)
+
+    # TO DO Kitörölni a movies.json-ből
+    database.delete_actor("Laci")
