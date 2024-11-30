@@ -71,7 +71,7 @@ class Database_Handler:
     filtered_movies = []
 
     def __init__(self, file_path):
-        self.db_path = file_path
+        self.movies_json_path = file_path
         self.actors_json_path = "actors.json"
 
     def __decoder(self, movie_data, actor_data):
@@ -93,9 +93,22 @@ class Database_Handler:
         for actor in actor_data:
             self.actors.add(Actor(actor["name"], actor["birth_year"]))
 
+    def serialize_movies_to_json(self):
+        data = []
+        for m in self.movies:
+            new_movie_dict = {
+                "title": m.title,
+                "director": m.director.__dict__,
+                "release_year": m.release_year,
+                "length": m.length,
+                "actors": [a.__dict__ for a in m.actors],
+            }
+            data.append(new_movie_dict)
+        return data
+
     def load_database(self):
         try:
-            with open(self.db_path, "r") as file:
+            with open(self.movies_json_path, "r") as file:
                 data = json.load(file, parse_int=int)
         except:
             print("Failed to load the movie database")
@@ -130,7 +143,7 @@ class Database_Handler:
             "actors": [actor.__dict__ for actor in new_movie.actors],
         }
         try:
-            with open(self.db_path, "r+") as file:
+            with open(self.movies_json_path, "r+") as file:
                 data = json.load(file)
                 data.append(new_movie)
                 file.seek(0)
@@ -268,9 +281,16 @@ class Database_Handler:
                 json.dump(data, file, indent=4)
 
         except FileNotFoundError:
-            print(f"The file {self.actors_json_path} does not exist.")
+            print(f"The file {self.actors_json_path} or  does not exist.")
         except json.JSONDecodeError:
             print(f"Error decoding JSON from the file {self.actors_json_path}.")
+
+        try:
+            with open(self.movies_json_path, "w") as file:
+                json.dump(self.serialize_movies_to_json(), file, indent=4)
+
+        except FileNotFoundError:
+            print(f"The file {self.movies_json_path} or  does not exist.")
 
     def delete_actor(self, name):
         actor = self.__search_actor(name)
@@ -329,6 +349,3 @@ if __name__ == "__main__":
     elif args.command == "d":
         if args.person:
             database.delete_actor(args.person)
-
-    # TO DO Kitörölni a movies.json-ből
-    database.delete_actor("Laci")
