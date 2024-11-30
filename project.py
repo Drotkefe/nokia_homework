@@ -182,6 +182,7 @@ class Database_Handler:
         self.__save_to_database(new_movie)
 
     def __save_actor(self, new_actor: Actor):
+        self.actors.add(new_actor)
         new_actor = new_actor.__dict__
         try:
             if os.path.exists(self.actors_json_path):
@@ -215,27 +216,38 @@ class Database_Handler:
     ):
         self.filtered_movies = list(self.movies)
         if title_regex:
-            self.filtered_movies = [
-                movie
-                for movie in self.filtered_movies
-                if re.search(title_regex, movie.title, re.IGNORECASE)
-            ]
+            try:
+                self.filtered_movies = [
+                    movie
+                    for movie in self.filtered_movies
+                    if re.search(title_regex, movie.title, re.IGNORECASE)
+                ]
+            except re.error:
+                print("Non valid regex pattern")
+                exit()
         if director_regex:
-            self.filtered_movies = [
-                movie
-                for movie in self.filtered_movies
-                if re.search(director_regex, movie.director, re.IGNORECASE)
-            ]
+            try:
+                self.filtered_movies = [
+                    movie
+                    for movie in self.filtered_movies
+                    if re.search(director_regex, movie.director, re.IGNORECASE)
+                ]
+            except re.error:
+                print("Non valid regex pattern")
+                exit()
         if actor_regex:
-            self.filtered_movies = [
-                movie
-                for movie in self.filtered_movies
-                if any(
-                    re.search(actor_regex, actor.name, re.IGNORECASE)
-                    for actor in movie.actors
-                )
-            ]
-
+            try:
+                self.filtered_movies = [
+                    movie
+                    for movie in self.filtered_movies
+                    if any(
+                        re.search(actor_regex, actor.name, re.IGNORECASE)
+                        for actor in movie.actors
+                    )
+                ]
+            except re.error:
+                print("Non valid regex pattern")
+                exit()
         if order == "asc":
             self.filtered_movies.sort(key=lambda x: (x.length, x.title))
         elif order == "desc":
@@ -302,7 +314,7 @@ class Database_Handler:
             self.__delete_person_by_name_from_database(actor.name)
 
 
-if __name__ == "__main__":
+def main():
     database = Database_Handler("movies.json")
     database.load_database()
     parser = argparse.ArgumentParser(description="Movie Database Program")
@@ -349,3 +361,7 @@ if __name__ == "__main__":
     elif args.command == "d":
         if args.person:
             database.delete_actor(args.person)
+
+
+if __name__ == "__main__":
+    main()
