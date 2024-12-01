@@ -13,7 +13,7 @@
 
 ## Example inputs
 ```bash
-# Add a movie
+# Add a movie (Make sure you have added the starring actors beforehand)
 project.py a -m
 Title: Star Wars 1.
 Director: George Luca
