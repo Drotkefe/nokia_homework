@@ -224,17 +224,17 @@ class Database_Handler:
                 ]
             except re.error:
                 print("Non valid regex pattern")
-                exit()
+                self.filtered_movies = []
         if director_regex:
             try:
                 self.filtered_movies = [
                     movie
                     for movie in self.filtered_movies
-                    if re.search(director_regex, movie.director, re.IGNORECASE)
+                    if re.search(director_regex, movie.director.name, re.IGNORECASE)
                 ]
             except re.error:
                 print("Non valid regex pattern")
-                exit()
+                self.filtered_movies = []
         if actor_regex:
             try:
                 self.filtered_movies = [
@@ -247,7 +247,7 @@ class Database_Handler:
                 ]
             except re.error:
                 print("Non valid regex pattern")
-                exit()
+                self.filtered_movies = []
         if order == "asc":
             self.filtered_movies.sort(key=lambda x: (x.length, x.title))
         elif order == "desc":
